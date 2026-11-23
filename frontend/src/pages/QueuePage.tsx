@@ -1,5 +1,6 @@
 import { Link, useSearchParams } from 'react-router-dom'
-import { QueueView, Topic } from '../lib/api'
+import { QueueView, Topic, tzParam } from '../lib/api'
+import { DailyList, DailyProgress } from '../components/DailyPlan'
 import { useApi } from '../lib/useApi'
 import { fmtDate, fmtIn } from '../lib/format'
 import { QueueRow } from '../components/QueueList'
@@ -10,7 +11,7 @@ export default function QueuePage() {
   const topic = params.get('topic') ?? 'all'
   const difficulty = params.get('difficulty') ?? ''
   const topics = useApi<Topic[]>('/api/topics')
-  const q = useApi<QueueView>(`/api/queue?topic=${topic}&difficulty=${difficulty}`)
+  const q = useApi<QueueView>(`/api/queue?topic=${topic}&difficulty=${difficulty}&${tzParam()}`)
 
   const set = (k: string, v: string) => {
     const p = new URLSearchParams(params)
@@ -43,6 +44,13 @@ export default function QueuePage() {
       {q.loading && !q.data && <Spinner />}
       {q.data && (
         <>
+          {q.data.daily && (
+            <Section title={<span>Today{topicName || difficulty ? <span className="ml-1 text-mute">(filtered)</span> : null}</span>}
+              right={<Link className="text-xs text-accent" to="/settings">Daily plan →</Link>}>
+              <DailyProgress plan={q.data.daily} />
+              <DailyList plan={q.data.daily} />
+            </Section>
+          )}
           {q.data.groups.map(g => (
             <Section key={g.rule} title={<span>{g.priority}. {g.label} <span className="ml-1 text-mute">({g.items.length})</span></span>}>
               {g.items.length === 0 ? <p className="text-sm text-mute">Nothing here.</p> : (

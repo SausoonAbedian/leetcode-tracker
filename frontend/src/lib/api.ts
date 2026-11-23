@@ -101,6 +101,16 @@ export interface QueueView {
   groups: { rule: string; label: string; priority: number; items: QueueItem[] }[]
   cooling: { problemId: number; title: string; difficulty: Difficulty; topicNo: string; topic: string; failedAt: string; readyAt: string }[]
   excluded: QueueItem[]; next?: QueueItem | null; total: number
+  daily?: DailyPlan | null
+}
+export interface DailyPlan {
+  categories: { key: string; label: string; quota: number; done: number; available: number }[]
+  items: QueueItem[]; target: number; done: number
+}
+/** Query param so the server knows where the viewer's "today" starts. */
+export const tzParam = () => `tz=${new Date().getTimezoneOffset()}`
+export const CATEGORY_OF: Record<string, string> = {
+  New: 'New', FailedReady: 'Failed / flagged', Hinted: 'Failed / flagged', OverTime: 'Failed / flagged', ReviewDue: 'Review',
 }
 
 export interface Topic { topicNo: string; topic: string; count: number }
@@ -110,6 +120,7 @@ export interface Settings {
   failCooldownHours: number
   timeLimits: Record<string, number>
   reviewIntervalsDays: number[]
+  dailyQuota: Record<string, number>
   ai: { provider: string; anthropicModel: string; deepSeekModel: string; claudeCodeModel: string }
 }
 

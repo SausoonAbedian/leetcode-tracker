@@ -43,6 +43,20 @@ export default function SettingsPage() {
       <ErrorBox error={err} />
       {saved && <Notice tone="good">Saved. The queue updates right away.</Notice>}
 
+      <Section title="Daily plan" right={<span className="text-xs text-mute">Set all to 0 to turn it off.</span>}>
+        <p className="mb-3 text-sm text-ink2">How many problems of each kind to do per day. If one kind runs out, the others fill its slots.</p>
+        <div className="flex flex-wrap gap-4">
+          {[['New', 'New'], ['Retry', 'Failed / flagged'], ['Review', 'Review due']].map(([k, label]) => (
+            <label key={k} className="flex items-center gap-2 text-sm">
+              <span className="text-ink2">{label}</span>
+              <input className="input w-20" type="number" min={0} max={50} value={s.dailyQuota?.[k] ?? 0}
+                onChange={e => update(x => { x.dailyQuota = { ...x.dailyQuota, [k]: Number(e.target.value) } })} />
+            </label>
+          ))}
+          <span className="self-center text-sm text-mute">= {Object.values(s.dailyQuota ?? {}).reduce((a, b) => a + b, 0)} per day</span>
+        </div>
+      </Section>
+
       <Section title="Queue priority" right={<span className="text-xs text-mute">Drag or use the arrows. A problem goes into the first enabled rule it matches.</span>}>
         <ol className="space-y-1.5">
           {s.rules.map((r, i) => (

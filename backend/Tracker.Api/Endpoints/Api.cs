@@ -152,8 +152,8 @@ public static class Api
         });
 
         // ---------- queue / stats ----------
-        api.MapGet("/queue", async (string? topic, string? difficulty, QueueService q) => await q.GetAsync(Blank(topic), Blank(difficulty)));
-        api.MapGet("/queue/next", async (string? topic, string? difficulty, QueueService q) => (await q.GetAsync(Blank(topic), Blank(difficulty))).Next);
+        api.MapGet("/queue", async (string? topic, string? difficulty, int? tz, QueueService q) => await q.GetAsync(Blank(topic), Blank(difficulty), Tz(tz)));
+        api.MapGet("/queue/next", async (string? topic, string? difficulty, int? tz, QueueService q) => (await q.GetAsync(Blank(topic), Blank(difficulty), Tz(tz))).Next);
         api.MapGet("/stats", async (string? topic, StatsService stats) => await stats.GetAsync(Blank(topic)));
 
         // ---------- AI ----------
@@ -167,6 +167,7 @@ public static class Api
     }
 
     static string? Blank(string? s) => string.IsNullOrWhiteSpace(s) || s == "all" ? null : s;
+    static int Tz(int? tz) => Math.Clamp(tz ?? 0, -14 * 60, 14 * 60);
 
     public record StartBody(DateTime? StartedAt);
 }

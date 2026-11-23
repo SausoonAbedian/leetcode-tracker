@@ -15,6 +15,28 @@ public static class QueueRules
     public const string ReviewUpcoming = "ReviewUpcoming";
     public static readonly string[] All = [New, FailedReady, Hinted, OverTime, ReviewDue, ReviewUpcoming];
 
+    /// <summary>Daily plan categories. Upcoming (not yet due) reviews are never part of the daily plan.</summary>
+    public const string CatNew = "New";
+    public const string CatRetry = "Retry";
+    public const string CatReview = "Review";
+    public static readonly string[] Categories = [CatNew, CatRetry, CatReview];
+
+    public static string? Category(string rule) => rule switch
+    {
+        New => CatNew,
+        FailedReady or Hinted or OverTime => CatRetry,
+        ReviewDue => CatReview,
+        _ => null
+    };
+
+    public static string CategoryLabel(string cat) => cat switch
+    {
+        CatNew => "New",
+        CatRetry => "Failed / flagged",
+        CatReview => "Review",
+        _ => cat
+    };
+
     public static string Label(string rule) => rule switch
     {
         New => "New (never attempted)",
@@ -49,6 +71,10 @@ public class TrackerSettings
     public AiSettings Ai { get; set; } = new();
     /// <summary>Days to wait after the 1st, 2nd, 3rd… consecutive clean pass; the last value repeats.</summary>
     public List<double> ReviewIntervalsDays { get; set; } = [2, 4, 8];
+    /// <summary>How many problems of each category (New, Retry, Review) to do per day. All zero turns the daily plan off.</summary>
+    public Dictionary<string, int> DailyQuota { get; set; } = DefaultQuota();
+
+    static Dictionary<string, int> DefaultQuota() => new() { [QueueRules.CatNew] = 2, [QueueRules.CatRetry] = 2, [QueueRules.CatReview] = 1 };
 
     public int LimitMinutes(string difficulty) => TimeLimits.TryGetValue(difficulty, out var m) ? m : 45;
 
@@ -67,6 +93,10 @@ public class TrackerSettings
         Ai ??= new AiSettings();
         ReviewIntervalsDays = (ReviewIntervalsDays ?? []).Select(d => Math.Max(0, d)).Take(10).ToList();
         if (ReviewIntervalsDays.Count == 0) ReviewIntervalsDays = [2, 4, 8];
+        var defaults = DefaultQuota();
+        DailyQuota ??= defaults;
+        DailyQuota = QueueRules.Categories.ToDictionary(c => c,
+            c => Math.Clamp(DailyQuota.TryGetValue(c, out var n) ? n : defaults[c], 0, 50));
         return this;
     }
 }

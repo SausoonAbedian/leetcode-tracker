@@ -1,5 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom'
-import { api, QueueView, Stats } from '../lib/api'
+import { api, QueueView, Stats, tzParam } from '../lib/api'
+import { DailyList, DailyProgress } from '../components/DailyPlan'
 import { useApi } from '../lib/useApi'
 import { useActiveAttempt } from '../lib/activeAttempt'
 import { pct } from '../lib/format'
@@ -8,7 +9,7 @@ import { DifficultyBadge, ErrorBox, Notice, Section, Spinner, StatTile } from '.
 import { useState } from 'react'
 
 export default function Dashboard() {
-  const queue = useApi<QueueView>('/api/queue')
+  const queue = useApi<QueueView>(`/api/queue?${tzParam()}`)
   const stats = useApi<Stats>('/api/stats')
   const { active, refresh } = useActiveAttempt()
   const nav = useNavigate()
@@ -74,11 +75,18 @@ export default function Dashboard() {
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
-        <Section className="lg:col-span-2" title="Up next" right={<Link className="text-xs text-accent" to="/queue">Full queue →</Link>}>
-          <div className="-mx-3">
-            {q?.groups.flatMap(g => g.items).slice(0, 10).map((it, i) => <QueueRow key={it.problemId} item={it} rank={i + 1} />)}
-          </div>
-        </Section>
+        {q?.daily ? (
+          <Section className="lg:col-span-2" title="Today" right={<Link className="text-xs text-accent" to="/queue">Full queue →</Link>}>
+            <DailyProgress plan={q.daily} />
+            <DailyList plan={q.daily} />
+          </Section>
+        ) : (
+          <Section className="lg:col-span-2" title="Up next" right={<Link className="text-xs text-accent" to="/queue">Full queue →</Link>}>
+            <div className="-mx-3">
+              {q?.groups.flatMap(g => g.items).slice(0, 10).map((it, i) => <QueueRow key={it.problemId} item={it} rank={i + 1} />)}
+            </div>
+          </Section>
+        )}
         <div className="space-y-4">
           <Section title="Weak topics" right={<Link className="text-xs text-accent" to="/stats">Stats →</Link>}>
             {s?.weak.length ? s.weak.map(t => (

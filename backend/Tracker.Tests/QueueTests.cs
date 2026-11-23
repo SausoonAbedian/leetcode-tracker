@@ -127,4 +127,70 @@ public class QueueTests
         Assert.Equal(QueueRules.ReviewDue, s.Rules[0].Rule);   // old "Solved" rule maps to ReviewDue
         Assert.Equal(QueueRules.All.OrderBy(x => x), s.Rules.Select(r => r.Rule).OrderBy(x => x));
     }
+
+    static string[] Daily(QueueView v) => v.Daily!.Items.Select(i => $"{QueueRules.Category(i.Rule)}:{i.ProblemId}").ToArray();
+
+    [Fact]
+    public void Daily_plan_takes_a_quota_from_each_category()
+    {
+        // 10 new (1-10), 3 failed/flagged (11-13), 2 reviews due (14-15)
+        var problems = Problems(15);
+        var attempts = new List<Attempt>
+        {
+            Fx.Failed(11, Now.AddDays(-2)), Fx.Passed(12, Now.AddDays(-2), 5, hints: 1), Fx.Passed(13, Now.AddDays(-2), 40),
+            Fx.Passed(14, Now.AddDays(-3), 5), Fx.Passed(15, Now.AddDays(-4), 5),
+        };
+        var v = QueueBuilder.Build(problems, attempts, Settings(), Now);
+
+        // Default 2 new / 2 failed-flagged / 1 review, kept in queue priority order.
+        Assert.Equal(["New:1", "New:2", "Retry:11", "Retry:12", "Review:15"], Daily(v));
+        Assert.Equal(5, v.Daily!.Target);
+        Assert.Equal(0, v.Daily.Done);
+        Assert.Equal(1, v.Next!.ProblemId);
+    }
+
+    [Fact]
+    public void Daily_plan_counts_what_was_finished_today()
+    {
+        var problems = Problems(15);
+        var attempts = new List<Attempt>
+        {
+            Fx.Passed(3, Now.AddHours(-1), 10),                                  // new, done today
+            Fx.Failed(11, Now.AddDays(-3)), Fx.Passed(11, Now.AddHours(-2), 10), // retry, done today
+            Fx.Passed(14, Now.AddDays(-3), 5),
+        };
+        var v = QueueBuilder.Build(problems, attempts, Settings(), Now);
+
+        // 1 new + 1 retry slot left; no retry candidate remains, so a new problem takes that slot.
+        Assert.Equal(["New:1", "New:2", "Review:14"], Daily(v));
+        Assert.Equal(2, v.Daily!.Done);
+        Assert.Equal(1, v.Daily.Categories.Single(c => c.Key == QueueRules.CatNew).Done);
+        Assert.Equal(1, v.Daily.Categories.Single(c => c.Key == QueueRules.CatRetry).Done);
+    }
+
+    [Fact]
+    public void Empty_category_gives_its_slots_to_the_others()
+    {
+        var v = QueueBuilder.Build(Problems(6), [], Settings(), Now);   // only new problems exist
+        Assert.Equal(["New:1", "New:2", "New:3", "New:4", "New:5"], Daily(v));
+    }
+
+    [Fact]
+    public void Today_uses_the_viewers_timezone()
+    {
+        // 02:00 local in UTC+3 is 23:00 UTC the previous day: that attempt counts as today locally.
+        var attempts = new List<Attempt> { Fx.Passed(1, Now.Date.AddHours(-1), 10) };
+        var v = QueueBuilder.Build(Problems(3), attempts, Settings(), Now, tzOffsetMinutes: -180);
+        Assert.Equal(1, v.Daily!.Done);
+        var utc = QueueBuilder.Build(Problems(3), attempts, Settings(), Now);
+        Assert.Equal(0, utc.Daily!.Done);
+    }
+
+    [Fact]
+    public void Zero_quota_turns_the_daily_plan_off()
+    {
+        var s = Settings();
+        s.DailyQuota = new() { ["New"] = 0, ["Retry"] = 0, ["Review"] = 0 };
+        Assert.Null(QueueBuilder.Build(Problems(3), [], s.Normalize(), Now).Daily);
+    }
 }
