@@ -120,6 +120,8 @@ public static class Api
             AttemptDto.From(await svc.PauseAsync(id), await s.GetAsync(), c.GetUtcNow().UtcDateTime));
         api.MapPost("/attempts/{id:int}/resume", async (int id, AttemptService svc, SettingsService s, TimeProvider c) =>
             AttemptDto.From(await svc.ResumeAsync(id), await s.GetAsync(), c.GetUtcNow().UtcDateTime));
+        api.MapPost("/attempts/{id:int}/cancel", async (int id, AttemptService svc, SettingsService s, TimeProvider c) =>
+            AttemptDto.From(await svc.CancelAsync(id), await s.GetAsync(), c.GetUtcNow().UtcDateTime));
         api.MapPost("/attempts/{id:int}/discard", async (int id, AttemptService svc) =>
         {
             await svc.DiscardAsync(id);

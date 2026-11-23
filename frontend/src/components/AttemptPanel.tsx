@@ -24,6 +24,7 @@ export function AttemptPanel({ problem, onChanged }: { problem: ProblemDetail; o
   const [startAt, setStartAt] = useState<string>('')
   const [editStart, setEditStart] = useState(false)
   const [confirmGiveUp, setConfirmGiveUp] = useState(false)
+  const [confirmCancel, setConfirmCancel] = useState(false)
 
   const key = folderKey(problem.id)
   useEffect(() => { rememberedFolderName(key).then(setFolderName) }, [key])
@@ -106,7 +107,16 @@ export function AttemptPanel({ problem, onChanged }: { problem: ProblemDetail; o
   })
 
   const discard = (id: number) => act('discard', async () => {
+    setConfirmCancel(false)
     await api.post(`/api/attempts/${id}/discard`)
+    if (id === mine?.id) { await forgetFolder(key); setFolderName(null); setLastRun(null) }
+    await after()
+  })
+
+  const cancel = () => act('cancel', async () => {
+    setConfirmCancel(false)
+    await api.post(`/api/attempts/${mine!.id}/cancel`)
+    setLastRun(null)
     await after()
   })
 
@@ -168,7 +178,7 @@ export function AttemptPanel({ problem, onChanged }: { problem: ProblemDetail; o
           ({other.status.toLowerCase()}). Finish it first, or{' '}
           {other.status === 'Downloaded'
             ? <button className="underline" onClick={() => discard(other.id)}>discard it</button>
-            : <>open it and give up</>}.
+            : <>open it and cancel or give up</>}.
         </Notice>
       )}
 
@@ -234,7 +244,8 @@ export function AttemptPanel({ problem, onChanged }: { problem: ProblemDetail; o
               </button>
             ))}
             <button className="btn" disabled={!!busy} onClick={reviewCurrent}>{busy === 'review' ? <Spinner /> : '🔍'} Review</button>
-            <button className="btn btn-danger ml-auto" disabled={!!busy} onClick={() => setConfirmGiveUp(true)}>Give up</button>
+            <button className="btn ml-auto" disabled={!!busy} onClick={() => setConfirmCancel(true)}>{busy === 'cancel' ? <Spinner /> : '✕'} Cancel</button>
+            <button className="btn btn-danger" disabled={!!busy} onClick={() => setConfirmGiveUp(true)}>Give up</button>
           </div>
           {busy === 'run' && <p className="text-xs text-mute">Building and running the tests… the first run of a problem can take ~30 seconds.</p>}
           {busy === 'submit' && <p className="text-xs text-mute">Judging your submission…</p>}
@@ -260,6 +271,15 @@ export function AttemptPanel({ problem, onChanged }: { problem: ProblemDetail; o
             <button className="btn" onClick={() => setEditStart(false)}>Cancel</button>
             <button className="btn btn-primary" disabled={!startAt || !!busy} onClick={saveStart}>Save</button>
           </div>
+        </div>
+      </Modal>
+
+      <Modal open={confirmCancel} onClose={() => setConfirmCancel(false)} title="Cancel this attempt?">
+        <p className="mb-4 text-sm text-ink2">Nothing is recorded — it won't count as a fail. Reset the timer and keep the download so you can start again later, or discard the attempt entirely.</p>
+        <div className="flex justify-end gap-2">
+          <button className="btn" onClick={() => setConfirmCancel(false)}>Keep going</button>
+          <button className="btn" onClick={cancel}>Reset timer</button>
+          <button className="btn btn-danger" onClick={() => discard(mine!.id)}>Discard attempt</button>
         </div>
       </Modal>
 

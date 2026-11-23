@@ -171,6 +171,33 @@ public class IntegrationTests(PostgresFixture pg) : IClassFixture<PostgresFixtur
     }
 
     [Fact]
+    public async Task Started_attempt_can_be_cancelled_or_discarded()
+    {
+        await ImportMiniAsync();
+        var (svc, db, clock) = Services();
+        await using var __ = db;
+
+        var (_, _, a) = await svc.DownloadAsync(1);
+        await svc.StartAsync(a.Id, null);
+        clock.Now = clock.Now.AddMinutes(5);
+        await svc.PauseAsync(a.Id);
+        clock.Now = clock.Now.AddMinutes(2);
+
+        // Cancel → back to not started, timer cleared.
+        var cancelled = await svc.CancelAsync(a.Id);
+        Assert.Equal(AttemptStatus.Downloaded, cancelled.Status);
+        Assert.Null(cancelled.StartedAt);
+        Assert.Null(cancelled.PausedAt);
+        Assert.Equal(0, cancelled.PausedSeconds);
+        await Assert.ThrowsAsync<BadRequestException>(() => svc.CancelAsync(a.Id));
+
+        // Start again, then discard while running → no attempt left.
+        await svc.StartAsync(a.Id, null);
+        await svc.DiscardAsync(a.Id);
+        Assert.False(await db.Attempts.AnyAsync(x => x.Id == a.Id));
+    }
+
+    [Fact]
     public async Task Compile_errors_are_reported()
     {
         await ImportMiniAsync();

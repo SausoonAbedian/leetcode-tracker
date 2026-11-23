@@ -97,11 +97,24 @@ public class AttemptService(TrackerDb db, PackageService packages, TestRunner ru
         return a;
     }
 
-    /// <summary>Discards an attempt that was downloaded but never started.</summary>
+    /// <summary>Cancels a started attempt: back to "downloaded", timer cleared, nothing recorded.</summary>
+    public async Task<Attempt> CancelAsync(int attemptId)
+    {
+        var a = await LoadAsync(attemptId);
+        if (a.Status is not (AttemptStatus.Running or AttemptStatus.Paused)) throw new BadRequestException("Only a running or paused attempt can be cancelled.");
+        a.Status = AttemptStatus.Downloaded;
+        a.StartedAt = null;
+        a.PausedAt = null;
+        a.PausedSeconds = 0;
+        await db.SaveChangesAsync();
+        return a;
+    }
+
+    /// <summary>Deletes an open attempt (not started, running or paused) without recording anything.</summary>
     public async Task DiscardAsync(int attemptId)
     {
         var a = await LoadAsync(attemptId);
-        if (a.Status != AttemptStatus.Downloaded) throw new BadRequestException("Only an attempt that hasn't started can be discarded. Use Give up instead.");
+        if (!a.IsOpen) throw new BadRequestException("A finished attempt can't be discarded.");
         db.Attempts.Remove(a);
         await db.SaveChangesAsync();
     }
