@@ -1,0 +1,27 @@
+%% 01 | Arrays & Hashing
+
+@@ 217 | Contains Duplicate | Easy | lc | contains-duplicate | duplicate-integer
+## Solution
+public class Solution
+{
+    public bool ContainsDuplicate(int[] nums)
+    {
+        throw new NotImplementedException();
+    }
+}
+## Tests
+[Fact] public void Example1() => Assert.True(new Solution().ContainsDuplicate(new[] { 1, 2, 3, 1 }));
+[Fact] public void Example2() => Assert.False(new Solution().ContainsDuplicate(new[] { 1, 2, 3, 4 }));
+
+@@ 1 | Two Sum | Easy | lc | two-sum | two-integer-sum
+## Solution
+public class Solution
+{
+    public int[] TwoSum(int[] nums, int target)
+    {
+        throw new NotImplementedException();
+    }
+}
+## Tests
+[Fact] public void Example1() => AssertEx.SameItems(new[] { 0, 1 }, new Solution().TwoSum(new[] { 2, 7, 11, 15 }, 9));
+[Fact] public void Example2() => AssertEx.SameItems(new[] { 1, 2 }, new Solution().TwoSum(new[] { 3, 2, 4 }, 6));

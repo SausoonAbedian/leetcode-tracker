@@ -1,0 +1,9 @@
+.env
+**/bin
+**/obj
+**/node_modules
+frontend/dist
+backend/Tracker.Tests
+.git
+.vs
+.idea

@@ -1,0 +1,37 @@
+services:
+  db:
+    image: postgres:17
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-tracker}
+      POSTGRES_USER: ${POSTGRES_USER:-tracker}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-tracker}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-tracker} -d ${POSTGRES_DB:-tracker}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  app:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "${TRACKER_PORT:-8080}:8080"
+    environment:
+      ConnectionStrings__Tracker: Host=db;Port=5432;Database=${POSTGRES_DB:-tracker};Username=${POSTGRES_USER:-tracker};Password=${POSTGRES_PASSWORD:-tracker}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:-}
+      CLAUDE_CODE_OAUTH_TOKEN: ${CLAUDE_CODE_OAUTH_TOKEN:-}
+    volumes:
+      - nuget-cache:/home/app/.nuget/packages
+      - build-cache:/var/tracker/build
+
+volumes:
+  pgdata:
+  nuget-cache:
+  build-cache:

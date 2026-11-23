@@ -1,0 +1,105 @@
+@import "tailwindcss";
+
+/* Dark-only theme. Chart roles follow the dataviz reference palette (dark steps). */
+:root {
+  color-scheme: dark;
+  --surface-0: #121211;
+  --surface-1: #1a1a19;
+  --surface-2: #232321;
+  --surface-3: #2d2d2a;
+  --border: #383835;
+  --text-primary: #f0efec;
+  --text-secondary: #c3c2b7;
+  --text-muted: #8f8e86;
+  --accent: #3987e5;
+  --accent-strong: #2a78d6;
+
+  --series-1: #3987e5; /* Easy   */
+  --series-2: #d95926; /* Medium */
+  --series-3: #199e70; /* Hard   */
+  --series-7: #9085e9;
+
+  --good: #0ca30c;
+  --warning: #fab219;
+  --serious: #ec835a;
+  --critical: #d03b3b;
+
+  --seq-0: #232321;
+  --seq-1: #104281;
+  --seq-2: #1c5cab;
+  --seq-3: #2a78d6;
+  --seq-4: #5598e7;
+  --seq-5: #86b6ef;
+}
+
+@theme {
+  --color-s0: var(--surface-0);
+  --color-s1: var(--surface-1);
+  --color-s2: var(--surface-2);
+  --color-s3: var(--surface-3);
+  --color-line: var(--border);
+  --color-ink: var(--text-primary);
+  --color-ink2: var(--text-secondary);
+  --color-mute: var(--text-muted);
+  --color-accent: var(--accent);
+  --color-good: var(--good);
+  --color-warn: var(--warning);
+  --color-serious: var(--serious);
+  --color-bad: var(--critical);
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", "Cascadia Code", ui-monospace, Consolas, monospace;
+}
+
+html, body, #root { height: 100%; }
+body {
+  margin: 0;
+  background: var(--surface-0);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+.card { background: var(--surface-1); border: 1px solid var(--border); border-radius: 12px; }
+.btn {
+  display: inline-flex; align-items: center; gap: .4rem; padding: .45rem .85rem; border-radius: 8px;
+  font-size: .875rem; font-weight: 500; border: 1px solid var(--border); background: var(--surface-2);
+  color: var(--text-primary); cursor: pointer; transition: background .15s, border-color .15s; white-space: nowrap;
+}
+.btn:hover:not(:disabled) { background: var(--surface-3); }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+.btn-primary { background: var(--accent-strong); border-color: var(--accent-strong); color: #fff; }
+.btn-primary:hover:not(:disabled) { background: var(--accent); }
+.btn-good { background: #0b7a0b; border-color: #0b7a0b; color: #fff; }
+.btn-good:hover:not(:disabled) { background: var(--good); }
+.btn-danger { color: #f3a5a5; border-color: #5c2a2a; }
+.btn-danger:hover:not(:disabled) { background: #3a1d1d; }
+.btn-sm { padding: .25rem .55rem; font-size: .8rem; }
+.input {
+  background: var(--surface-0); border: 1px solid var(--border); border-radius: 8px; padding: .4rem .6rem;
+  color: var(--text-primary); font-size: .875rem;
+}
+.input:focus { outline: 2px solid var(--accent); outline-offset: 0; }
+.label { font-size: .75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: .04em; }
+table.grid { width: 100%; border-collapse: collapse; font-size: .875rem; }
+table.grid th { text-align: left; font-weight: 500; color: var(--text-muted); font-size: .75rem; text-transform: uppercase;
+  letter-spacing: .04em; padding: .5rem .75rem; border-bottom: 1px solid var(--border); }
+table.grid td { padding: .55rem .75rem; border-bottom: 1px solid #2a2a27; }
+table.grid tbody tr:hover { background: var(--surface-2); }
+
+.markdown { font-size: .9rem; line-height: 1.6; color: var(--text-secondary); }
+.markdown h1, .markdown h2, .markdown h3 { color: var(--text-primary); font-weight: 600; margin: 1rem 0 .4rem; }
+.markdown h1 { font-size: 1.2rem; } .markdown h2 { font-size: 1.05rem; } .markdown h3 { font-size: .95rem; }
+.markdown p { margin: .45rem 0; }
+.markdown ul, .markdown ol { padding-left: 1.3rem; margin: .4rem 0; }
+.markdown ul { list-style: disc; } .markdown ol { list-style: decimal; }
+.markdown code { font-family: var(--font-mono); background: var(--surface-3); padding: .1rem .3rem; border-radius: 4px; font-size: .82rem; color: var(--text-primary); }
+.markdown pre { background: var(--surface-0); border: 1px solid var(--border); padding: .75rem; border-radius: 8px; overflow-x: auto; }
+.markdown pre code { background: none; padding: 0; }
+.markdown a { color: var(--accent); }
+.markdown table { border-collapse: collapse; margin: .5rem 0; }
+.markdown td, .markdown th { border: 1px solid var(--border); padding: .25rem .6rem; }
+.markdown strong { color: var(--text-primary); }
+
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: #3a3a36; border-radius: 6px; }
+::-webkit-scrollbar-track { background: transparent; }

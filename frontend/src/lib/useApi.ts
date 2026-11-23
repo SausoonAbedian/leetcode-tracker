@@ -1,0 +1,17 @@
+import { useCallback, useEffect, useState } from 'react'
+import { api } from './api'
+
+export function useApi<T>(url: string | null) {
+  const [data, setData] = useState<T | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
+  const reload = useCallback(async () => {
+    if (!url) return
+    setLoading(true)
+    try { setData(await api.get<T>(url)); setError(null) }
+    catch (e: any) { setError(e.message ?? String(e)) }
+    finally { setLoading(false) }
+  }, [url])
+  useEffect(() => { reload() }, [reload])
+  return { data, error, loading, reload, setData }
+}

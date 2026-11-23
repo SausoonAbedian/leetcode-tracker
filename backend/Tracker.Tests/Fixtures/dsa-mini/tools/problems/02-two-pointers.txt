@@ -1,0 +1,14 @@
+%% 02 | Two Pointers
+
+@@ 125 | Valid Palindrome | Easy | lc | valid-palindrome | is-palindrome
+## Solution
+public class Solution
+{
+    public bool IsPalindrome(string s)
+    {
+        throw new NotImplementedException();
+    }
+}
+## Tests
+[Fact] public void Example1() => Assert.True(new Solution().IsPalindrome("A man, a plan, a canal: Panama"));
+[Fact] public void Example2() => Assert.False(new Solution().IsPalindrome("race a car"));
